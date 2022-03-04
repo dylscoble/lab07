@@ -120,5 +120,48 @@ df %>%
 
 The linearity assumption is not satisfied because there is no clear linear relationship between our fitted values and our predictors, as shown by the plot in exercise 6.
 
+# Part 3: Model Assessment & Prediction
+
+### Exercise 10
+
+```{r}
+roc_curve <- ggplot(df, aes(d = as.numeric(target), m = .fitted)) +
+  geom_roc(n.cuts = 10, labelround = 3) + 
+  geom_abline(intercept = 0) + 
+  labs(x = "False Positive Rate (1 - Specificity)", 
+       y = "True Positive Rate (Sensitivity)")
+
+roc_curve
+```
+```{r}
+calc_auc(roc_curve)$AUC
+```
+
+### Exercise 11
+
+This model does effectively differentiate between the songs the user likes versus those he or she doesn’t. The ROC Curve is entirely above the line x=y, which represents an entirely random classifier. Additionally, the area under the ROC curve exceeds 0.5.
+
+### Exercise 12.
+
+I would choose a threshold of 0.58 because it maximizes the TPR (true positive rate) while keeping FPR (false positive rate) as small as possible. In terms of the ROC curve, the 0.58 threshold seems to have the largest euclidean distance from the line x=y.
+
+### Exercise 13
+
+```{r}
+threshold = 0.58
+df %>% 
+  mutate(prediction = if_else(.fitted < threshold, "0:No","1:Yes")) %>% 
+  group_by(target, prediction) %>% 
+  summarise(n = n()) %>%
+  kable(format="markdown")
+```
+
+### Exercise 14
+
+The proportion of true positives is $(512 / 512+508) = 0.502$
+
+The proportion of false positives is $(508 / 512+508) = 0.498$
+
+The missclassification rate is $(508 + 161 / 508 + 161 + 512 + 836) = 0.302$
 
 

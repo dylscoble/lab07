@@ -7,4 +7,76 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(broom)
+library(pROC)
+library(plotROC)
 ```
+
+
+```{r}
+spotify <- read_csv("spotify.csv")
+glimpse(spotify)
+```
+
+# Part 1: Data Prep & Modeling
+
+
+### Exercise 1
+```{r}
+spotify <- spotify %>% 
+  drop_na() %>% 
+  mutate(target = as.factor(target),
+         key = case_when(
+           key == 2 ~ "D",
+           key == 3 ~ "D#",
+           TRUE ~ "Other"
+         ))
+
+glimpse(spotify)
+```
+
+```{r}
+ggplot(data = spotify, aes(x = key, fill = target)) +
+  geom_bar(position = "fill") +
+  labs(title="Target vs Key",
+       y="Proportion")
+```
+The plot above describes the relationship between Key and Target. For all songs in the key of D, about 60% of them have a target value of 1. For all songs in the key of D#, about 30% of them have a target value of 1. For all other songs, about half of them have a target value of 1.
+
+### Exercise 2
+
+```{r}
+model <- glm(target ~ acousticness + danceability + duration_ms + instrumentalness + loudness + speechiness + valence, data = spotify, family = binomial)
+
+tidy(model, conf.int = TRUE, exponentiate = FALSE) %>%
+  kable(format="markdown", digits = 5)
+```
+
+### Exercise 3
+
+```{r}
+model_with_key <- glm(target ~ acousticness + danceability + duration_ms + instrumentalness + loudness + speechiness + valence + key, data = spotify, family = binomial)
+
+summary(model)$aic
+
+summary(model_with_key)$aic
+
+```
+
+Adding key to the model lowers the model's AIC, making it better at predicting target. Therefore, we will continue to use the model with key.
+
+### Exercise 4
+
+```{r}
+tidy(model_with_key, conf.int = TRUE, exponentiate = FALSE) %>%
+  kable(format="markdown", digits = 5)
+
+```
+
+If the key of the observation is D#, the target value's prediction will drop significantly, by a value of -1.07319.
+
+# Part 2: Checking Assumptions
+
+### Exercise 5
+

@@ -2,7 +2,7 @@
 title: "lab07"
 author: "Dylan Scoble"
 date: "3/4/2022"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -11,6 +11,7 @@ library(tidyverse)
 library(broom)
 library(pROC)
 library(plotROC)
+library(knitr)
 ```
 
 
@@ -74,9 +75,50 @@ tidy(model_with_key, conf.int = TRUE, exponentiate = FALSE) %>%
 
 ```
 
-If the key of the observation is D#, the target value's prediction will drop significantly, by a value of -1.07319.
+If the key of the observation is D#, the target value's prediction will increase, by a value of exp(-1.07319).
 
 # Part 2: Checking Assumptions
 
 ### Exercise 5
+
+```{r}
+df <- augment(model_with_key, type.predict = "response",type.residuals = "deviance")
+glimpse(df)
+```
+
+### Exercise 6
+
+```{r}
+arm::binnedplot(x = df$.fitted, y = df$.resid,
+                xlab = "Predicted Probabilities", 
+                ylab = "Residuals",
+                main = "Binned Residual vs. Predicted Values", 
+                col.int = FALSE)
+```
+
+### Exercise 7
+
+```{r}
+arm::binnedplot(x = df$danceability, y = df$.resid,
+                xlab = "Danceability", 
+                ylab = "Residuals",
+                main = "Binned Residual vs. Danceability", 
+                col.int = FALSE)
+```
+
+### Exercise 8
+
+```{r}
+df %>% 
+  mutate(key_resid = if_else(.resid > 1 | .resid < -1, "High Residual", "Low Residual")) %>% 
+  group_by(key, key_resid) %>% 
+  summarise(n = n()) %>%
+  kable(format="markdown")
+```
+
+### Exercise 9
+
+The linearity assumption is not satisfied because there is no clear linear relationship between our fitted values and our predictors, as shown by the plot in exercise 6.
+
+
 

@@ -5,6 +5,8 @@ date: "3/4/2022"
 output: pdf_document
 ---
 
+The GitHub repository for this assignment can be found at https://github.com/dylscoble/lab07
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
